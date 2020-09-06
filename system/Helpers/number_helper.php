@@ -179,19 +179,17 @@ if (! function_exists('number_to_amount'))
 if (! function_exists('number_to_currency'))
 {
 	/**
-	 * @param float   $num
-	 * @param string  $currency
-	 * @param string  $locale
-	 * @param integer $fraction
+	 * @param float  $num
+	 * @param string $currency
+	 * @param string $locale
 	 *
 	 * @return string
 	 */
-	function number_to_currency(float $num, string $currency, string $locale = null, int $fraction = null): string
+	function number_to_currency(float $num, string $currency, string $locale = null): string
 	{
 		return format_number($num, 1, $locale, [
 			'type'     => NumberFormatter::CURRENCY,
 			'currency' => $currency,
-			'fraction' => $fraction,
 		]);
 	}
 }
@@ -214,25 +212,24 @@ if (! function_exists('format_number'))
 	function format_number(float $num, int $precision = 1, string $locale = null, array $options = []): string
 	{
 		// Locale is either passed in here, negotiated with client, or grabbed from our config file.
-		$locale = $locale ?? \Config\Services::request()->getLocale();
+		$locale = $locale ?? \CodeIgniter\Config\Services::request()->getLocale();
 
 		// Type can be any of the NumberFormatter options, but provide a default.
 		$type = (int) ($options['type'] ?? NumberFormatter::DECIMAL);
+
+		// In order to specify a precision, we'll have to modify
+		// the pattern used by NumberFormatter.
+		$pattern = '#,##0.' . str_repeat('#', $precision);
 
 		$formatter = new NumberFormatter($locale, $type);
 
 		// Try to format it per the locale
 		if ($type === NumberFormatter::CURRENCY)
 		{
-			$formatter->setAttribute(NumberFormatter::FRACTION_DIGITS, $options['fraction']);
 			$output = $formatter->formatCurrency($num, $options['currency']);
 		}
 		else
 		{
-			// In order to specify a precision, we'll have to modify
-			// the pattern used by NumberFormatter.
-			$pattern = '#,##0.' . str_repeat('#', $precision);
-
 			$formatter->setPattern($pattern);
 			$output = $formatter->format($num);
 		}

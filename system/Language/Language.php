@@ -149,7 +149,7 @@ class Language
 			$parsedLine,
 		] = $this->parseLine($line, $this->locale);
 
-		$output = $this->getTranslationOutput($this->locale, $file, $parsedLine);
+		$output = $this->language[$this->locale][$file][$parsedLine] ?? null;
 
 		if ($output === null && strpos($this->locale, '-'))
 		{
@@ -160,17 +160,14 @@ class Language
 				$parsedLine,
 			] = $this->parseLine($line, $locale);
 
-			$output = $this->getTranslationOutput($locale, $file, $parsedLine);
+			$output = $this->language[$locale][$file][$parsedLine] ?? null;
 		}
 
 		// if still not found, try English
-		if ($output === null)
+		if (empty($output))
 		{
-			[
-				$file,
-				$parsedLine,
-			]       = $this->parseLine($line, 'en');
-			$output = $this->getTranslationOutput('en', $file, $parsedLine);
+			$this->parseLine($line, 'en');
+			$output = $this->language['en'][$file][$parsedLine] ?? null;
 		}
 
 		$output = $output ?? $line;
@@ -184,42 +181,6 @@ class Language
 	}
 
 	//--------------------------------------------------------------------
-
-	/**
-	 * @return array|string|null
-	 */
-	private function getTranslationOutput(string $locale, string $file, string $parsedLine)
-	{
-		$output = $this->language[$locale][$file][$parsedLine] ?? null;
-		if ($output !== null)
-		{
-			return $output;
-		}
-
-		foreach (explode('.', $parsedLine) as $row)
-		{
-			if (! isset($current))
-			{
-				$current = $this->language[$locale][$file] ?? null;
-			}
-
-			$output = $current[$row] ?? null;
-			if (is_array($output))
-			{
-				$current = $output;
-			}
-		}
-
-		if ($output !== null)
-		{
-			return $output;
-		}
-
-		$row = current(explode('.', $parsedLine));
-		$key = substr($parsedLine, strlen($row) + 1);
-
-		return $this->language[$locale][$file][$row][$key] ?? null;
-	}
 
 	/**
 	 * Parses the language string which should include the
@@ -338,7 +299,7 @@ class Language
 	 */
 	protected function requireFile(string $path): array
 	{
-		$files   = Services::locator()->search($path, 'php', false);
+		$files   = Services::locator()->search($path);
 		$strings = [];
 
 		foreach ($files as $file)

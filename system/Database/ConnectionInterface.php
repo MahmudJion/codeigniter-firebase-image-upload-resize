@@ -124,7 +124,7 @@ interface ConnectionInterface
 	 *
 	 * @return mixed
 	 */
-	public function error(): array;
+	public function getError();
 
 	//--------------------------------------------------------------------
 

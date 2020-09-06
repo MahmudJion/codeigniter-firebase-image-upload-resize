@@ -55,13 +55,13 @@ class ResourcePresenter extends Controller
 	 *
 	 * @var string Name of the model class managing this resource's data
 	 */
-	protected $modelName;
+	protected $modelName = null;
 
 	/**
 	 *
 	 * @var \CodeIgniter\Model the model holding this resource's data
 	 */
-	protected $model;
+	protected $model = null;
 
 	//--------------------------------------------------------------------
 
@@ -99,6 +99,7 @@ class ResourcePresenter extends Controller
 	/**
 	 * Present a view to present a new single resource object
 	 *
+	 * @param  type $id
 	 * @return string
 	 */
 	public function new()
@@ -192,7 +193,7 @@ class ResourcePresenter extends Controller
 		{
 			if (class_exists($this->modelName))
 			{
-				$this->model = model($this->modelName);
+				$this->model = new $this->modelName;
 			}
 		}
 

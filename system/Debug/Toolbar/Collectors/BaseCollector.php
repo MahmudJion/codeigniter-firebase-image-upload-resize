@@ -38,8 +38,6 @@
 
 namespace CodeIgniter\Debug\Toolbar\Collectors;
 
-use CodeIgniter\Debug\Exceptions;
-
 /**
  * Base Toolbar collector
  */
@@ -255,7 +253,20 @@ class BaseCollector
 	 */
 	public function cleanPath(string $file): string
 	{
-		return Exceptions::cleanPath($file);
+		if (strpos($file, APPPATH) === 0)
+		{
+			$file = 'APPPATH/' . substr($file, strlen(APPPATH));
+		}
+		elseif (strpos($file, SYSTEMPATH) === 0)
+		{
+			$file = 'SYSTEMPATH/' . substr($file, strlen(SYSTEMPATH));
+		}
+		elseif (strpos($file, FCPATH) === 0)
+		{
+			$file = 'FCPATH/' . substr($file, strlen(FCPATH));
+		}
+
+		return $file;
 	}
 
 	/**

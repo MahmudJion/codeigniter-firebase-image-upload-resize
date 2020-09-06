@@ -39,11 +39,11 @@
 
 namespace CodeIgniter;
 
+use Config\Services;
 use CodeIgniter\HTTP\RequestInterface;
 use CodeIgniter\HTTP\ResponseInterface;
-use CodeIgniter\Validation\Exceptions\ValidationException;
 use CodeIgniter\Validation\Validation;
-use Config\Services;
+use CodeIgniter\Validation\Exceptions\ValidationException;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -117,6 +117,7 @@ class Controller
 		$this->request  = $request;
 		$this->response = $response;
 		$this->logger   = $logger;
+		$this->logger->info('Controller "' . get_class($this) . '" loaded.');
 
 		if ($this->forceHTTPS > 0)
 		{
@@ -194,7 +195,7 @@ class Controller
 		// If you replace the $rules array with the name of the group
 		if (is_string($rules))
 		{
-			$validation = config('Validation');
+			$validation = new \Config\Validation();
 
 			// If the rule wasn't found in the \Config\Validation, we
 			// should throw an exception so the developer can find it.
@@ -213,10 +214,12 @@ class Controller
 			$rules = $validation->$rules;
 		}
 
-		return $this->validator
+		$success = $this->validator
 			->withRequest($this->request)
 			->setRules($rules, $messages)
 			->run();
+
+		return $success;
 	}
 
 	//--------------------------------------------------------------------

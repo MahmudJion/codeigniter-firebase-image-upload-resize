@@ -40,7 +40,8 @@ namespace CodeIgniter\Commands\Database;
 
 use CodeIgniter\CLI\BaseCommand;
 use CodeIgniter\CLI\CLI;
-use Config\Services;
+use Config\Autoload;
+use Config\Migrations;
 
 /**
  * Creates a new migration file.
@@ -123,14 +124,15 @@ class CreateMigration extends BaseCommand
 
 		if (! empty($ns))
 		{
-			// Get all namespaces
-			$namespaces = Services::autoloader()->getNamespace();
+			// Get all namespaces from PSR4 paths.
+			$config     = new Autoload();
+			$namespaces = $config->psr4;
 
 			foreach ($namespaces as $namespace => $path)
 			{
 				if ($namespace === $ns)
 				{
-					$homepath = realpath(reset($path));
+					$homepath = realpath($path);
 					break;
 				}
 			}
@@ -176,7 +178,7 @@ EOD;
 		helper('filesystem');
 		if (! write_file($path, $template))
 		{
-			CLI::error(lang('Migrations.writeError', [$path]));
+			CLI::error(lang('Migrations.writeError'));
 			return;
 		}
 

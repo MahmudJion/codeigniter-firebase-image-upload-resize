@@ -51,14 +51,14 @@ class Image extends File
 	/**
 	 * The original image width in pixels.
 	 *
-	 * @var integer|float
+	 * @var
 	 */
 	public $origWidth;
 
 	/**
 	 * The original image height in pixels.
 	 *
-	 * @var integer|float
+	 * @var
 	 */
 	public $origHeight;
 
@@ -131,7 +131,7 @@ class Image extends File
 	 *
 	 * @param boolean $return
 	 *
-	 * @return array|boolean
+	 * @return mixed
 	 */
 	public function getProperties(bool $return = false)
 	{
@@ -143,10 +143,9 @@ class Image extends File
 		}
 
 		$types = [
-			IMAGETYPE_GIF  => 'gif',
-			IMAGETYPE_JPEG => 'jpeg',
-			IMAGETYPE_PNG  => 'png',
-			IMAGETYPE_WEBP => 'webp',
+			1 => 'gif',
+			2 => 'jpeg',
+			3 => 'png',
 		];
 
 		$mime = 'image/' . ($types[$vals[2]] ?? 'jpg');

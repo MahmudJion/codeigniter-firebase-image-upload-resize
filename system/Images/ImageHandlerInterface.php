@@ -52,8 +52,6 @@ interface ImageHandlerInterface
 	 * @param integer $height
 	 * @param boolean $maintainRatio If true, will get the closest match possible while keeping aspect ratio true.
 	 * @param string  $masterDim
-	 *
-	 * @return $this
 	 */
 	public function resize(int $width, int $height, bool $maintainRatio = false, string $masterDim = 'auto');
 
@@ -71,7 +69,7 @@ interface ImageHandlerInterface
 	 * @param boolean      $maintainRatio
 	 * @param string       $masterDim
 	 *
-	 * @return $this
+	 * @return mixed
 	 */
 	public function crop(int $width = null, int $height = null, int $x = null, int $y = null, bool $maintainRatio = false, string $masterDim = 'auto');
 
@@ -94,7 +92,7 @@ interface ImageHandlerInterface
 	 *
 	 * @param float $angle
 	 *
-	 * @return $this
+	 * @return mixed
 	 */
 	public function rotate(float $angle);
 
@@ -107,10 +105,9 @@ interface ImageHandlerInterface
 	 * @param integer $green
 	 * @param integer $blue
 	 *
-	 * @return $this
+	 * @return mixed
 	 */
 	public function flatten(int $red = 255, int $green = 255, int $blue = 255);
-
 	//--------------------------------------------------------------------
 
 	/**
@@ -140,7 +137,7 @@ interface ImageHandlerInterface
 	 *
 	 * @param string $dir Direction to flip, either 'vertical' or 'horizontal'
 	 *
-	 * @return $this
+	 * @return mixed
 	 */
 	public function flip(string $dir = 'vertical');
 
@@ -164,7 +161,7 @@ interface ImageHandlerInterface
 	 * @param integer $height
 	 * @param string  $position
 	 *
-	 * @return $this
+	 * @return boolean
 	 */
 	public function fit(int $width, int $height, string $position);
 
@@ -204,7 +201,7 @@ interface ImageHandlerInterface
 	 * @param string  $target
 	 * @param integer $quality
 	 *
-	 * @return boolean
+	 * @return mixed
 	 */
 	public function save(string $target = null, int $quality = 90);
 }

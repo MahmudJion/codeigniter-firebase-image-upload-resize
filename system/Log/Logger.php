@@ -39,8 +39,8 @@
 
 namespace CodeIgniter\Log;
 
-use CodeIgniter\Log\Exceptions\LogException;
 use Psr\Log\LoggerInterface;
+use CodeIgniter\Log\Exceptions\LogException;
 
 /**
  * The CodeIgntier Logger
@@ -58,6 +58,13 @@ use Psr\Log\LoggerInterface;
  */
 class Logger implements LoggerInterface
 {
+
+	/**
+	 * Path to save log files to.
+	 *
+	 * @var string
+	 */
+	protected $logPath;
 
 	/**
 	 * Used by the logThreshold Config setting to define
@@ -467,51 +474,37 @@ class Logger implements LoggerInterface
 		return strtr($message, $replace);
 	}
 
+	//--------------------------------------------------------------------
+
 	/**
-	 * Determines the file and line that the logging call
-	 * was made from by analyzing the backtrace.
-	 * Find the earliest stack frame that is part of our logging system.
+	 * Determines the current file/line that the log method was called from.
+	 * by analyzing the backtrace.
 	 *
 	 * @return array
 	 */
 	public function determineFile(): array
 	{
-		$logFunctions = [
-			'log_message',
-			'log',
-			'error',
-			'debug',
-			'info',
-			'warning',
-			'critical',
-			'emergency',
-			'alert',
-			'notice',
-		];
+		// Determine the file and line by finding the first
+		// backtrace that is not part of our logging system.
+		$trace = debug_backtrace();
+		$file  = null;
+		$line  = null;
 
-		// Generate Backtrace info
-		$trace = \debug_backtrace(false);
-
-		// So we search from the bottom (earliest) of the stack frames
-		$stackFrames = \array_reverse($trace);
-
-		// Find the first reference to a Logger class method
-		foreach ($stackFrames as $frame)
+		foreach ($trace as $row)
 		{
-			if (\in_array($frame['function'], $logFunctions))
+			if (in_array($row['function'], ['interpolate', 'determineFile', 'log', 'log_message']))
 			{
-				$file = isset($frame['file']) ? $this->cleanFileNames($frame['file']) : 'unknown';
-				$line = $frame['line'] ?? 'unknown';
-				return [
-					$file,
-					$line,
-				];
+				continue;
 			}
+
+			$file = $row['file'] ?? isset($row['object']) ? get_class($row['object']) : 'unknown';
+			$line = $row['line'] ?? $row['function'] ?? 'unknown';
+			break;
 		}
 
 		return [
-			'unknown',
-			'unknown',
+			$file,
+			$line,
 		];
 	}
 
@@ -533,8 +526,9 @@ class Logger implements LoggerInterface
 	{
 		$file = str_replace(APPPATH, 'APPPATH/', $file);
 		$file = str_replace(SYSTEMPATH, 'SYSTEMPATH/', $file);
+		$file = str_replace(FCPATH, 'FCPATH/', $file);
 
-		return str_replace(FCPATH, 'FCPATH/', $file);
+		return $file;
 	}
 
 	//--------------------------------------------------------------------

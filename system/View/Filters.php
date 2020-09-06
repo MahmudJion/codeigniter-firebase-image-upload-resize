@@ -256,18 +256,16 @@ class Filters
 	 * @param $value
 	 * @param string      $currency
 	 * @param string|null $locale
-	 * @param integer     $fraction
 	 *
 	 * @return string
 	 */
-	public static function local_currency($value, string $currency, string $locale = null, $fraction = null): string
+	public static function local_currency($value, string $currency, string $locale = null): string
 	{
 		helper('number');
 
 		$options = [
 			'type'     => NumberFormatter::CURRENCY,
 			'currency' => $currency,
-			'fraction' => $fraction,
 		];
 
 		return format_number($value, 2, $locale, $options);
@@ -332,10 +330,13 @@ class Filters
 		{
 			case 'common':
 				return round($value, $precision);
+				break;
 			case 'ceil':
 				return ceil($value);
+				break;
 			case 'floor':
 				return floor($value);
+				break;
 		}
 
 		// Still here, just return the value.

@@ -1,5 +1,4 @@
 <?php
-
 /**
  * CodeIgniter
  *
@@ -39,10 +38,10 @@
 
 namespace CodeIgniter\Filters;
 
-use CodeIgniter\Honeypot\Exceptions\HoneypotException;
 use CodeIgniter\HTTP\RequestInterface;
 use CodeIgniter\HTTP\ResponseInterface;
 use Config\Services;
+use CodeIgniter\Honeypot\Exceptions\HoneypotException;
 
 /**
  * Honeypot filter
@@ -55,11 +54,12 @@ class Honeypot implements FilterInterface
 	 * then the requester is a bot
 	 *
 	 * @param \CodeIgniter\HTTP\RequestInterface $request
-	 * @param array|null                         $arguments
 	 *
 	 * @return void
+	 *
+	 * @throws \CodeIgniter\Honeypot\Exceptions\HoneypotException
 	 */
-	public function before(RequestInterface $request, $arguments = null)
+	public function before(RequestInterface $request)
 	{
 		$honeypot = Services::honeypot(new \Config\Honeypot());
 		if ($honeypot->hasContent($request))
@@ -73,11 +73,10 @@ class Honeypot implements FilterInterface
 	 *
 	 * @param \CodeIgniter\HTTP\RequestInterface  $request
 	 * @param \CodeIgniter\HTTP\ResponseInterface $response
-	 * @param array|null                          $arguments
 	 *
 	 * @return void
 	 */
-	public function after(RequestInterface $request, ResponseInterface $response, $arguments = null)
+	public function after(RequestInterface $request, ResponseInterface $response)
 	{
 		$honeypot = Services::honeypot(new \Config\Honeypot());
 		$honeypot->attachHoneypot($response);

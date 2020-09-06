@@ -171,38 +171,34 @@ class FileLocator
 	{
 		$php        = file_get_contents($file);
 		$tokens     = token_get_all($php);
+		$count      = count($tokens);
 		$dlm        = false;
 		$namespace  = '';
 		$class_name = '';
 
-		foreach ($tokens as $i => $token)
+		for ($i = 2; $i < $count; $i++)
 		{
-			if ($i < 2)
-			{
-				continue;
-			}
-
-			if ((isset($tokens[$i - 2][1]) && ($tokens[$i - 2][1] === 'phpnamespace' || $tokens[$i - 2][1] === 'namespace')) || ($dlm && $tokens[$i - 1][0] === T_NS_SEPARATOR && $token[0] === T_STRING))
+			if ((isset($tokens[$i - 2][1]) && ($tokens[$i - 2][1] === 'phpnamespace' || $tokens[$i - 2][1] === 'namespace')) || ($dlm && $tokens[$i - 1][0] === T_NS_SEPARATOR && $tokens[$i][0] === T_STRING))
 			{
 				if (! $dlm)
 				{
 					$namespace = 0;
 				}
-				if (isset($token[1]))
+				if (isset($tokens[$i][1]))
 				{
-					$namespace = $namespace ? $namespace . '\\' . $token[1] : $token[1];
+					$namespace = $namespace ? $namespace . '\\' . $tokens[$i][1] : $tokens[$i][1];
 					$dlm       = true;
 				}
 			}
-			elseif ($dlm && ($token[0] !== T_NS_SEPARATOR) && ($token[0] !== T_STRING))
+			elseif ($dlm && ($tokens[$i][0] !== T_NS_SEPARATOR) && ($tokens[$i][0] !== T_STRING))
 			{
 				$dlm = false;
 			}
 			if (($tokens[$i - 2][0] === T_CLASS || (isset($tokens[$i - 2][1]) && $tokens[$i - 2][1] === 'phpclass'))
 				&& $tokens[$i - 1][0] === T_WHITESPACE
-				&& $token[0] === T_STRING)
+				&& $tokens[$i][0] === T_STRING)
 			{
-				$class_name = $token[1];
+				$class_name = $tokens[$i][1];
 				break;
 			}
 		}
@@ -230,45 +226,23 @@ class FileLocator
 	 *      'app/Modules/bar/Config/Routes.php',
 	 *  ]
 	 *
-	 * @param string  $path
-	 * @param string  $ext
-	 * @param boolean $prioritizeApp
+	 * @param string $path
+	 * @param string $ext
 	 *
 	 * @return array
 	 */
-	public function search(string $path, string $ext = 'php', bool $prioritizeApp = true): array
+	public function search(string $path, string $ext = 'php'): array
 	{
 		$path = $this->ensureExt($path, $ext);
 
 		$foundPaths = [];
-		$appPaths   = [];
 
 		foreach ($this->getNamespaces() as $namespace)
 		{
 			if (isset($namespace['path']) && is_file($namespace['path'] . $path))
 			{
-				$fullPath = $namespace['path'] . $path;
-				if ($prioritizeApp)
-				{
-					$foundPaths[] = $fullPath;
-				}
-				else
-				{
-					if (strpos($fullPath, APPPATH) === 0)
-					{
-						$appPaths[] = $fullPath;
-					}
-					else
-					{
-						$foundPaths[] = $fullPath;
-					}
-				}
+				$foundPaths[] = $namespace['path'] . $path;
 			}
-		}
-
-		if (! $prioritizeApp && ! empty($appPaths))
-		{
-			$foundPaths = array_merge($foundPaths, $appPaths);
 		}
 
 		// Remove any duplicates
@@ -379,11 +353,7 @@ class FileLocator
 				// Remove the file extension (.php)
 				$className = mb_substr($className, 0, -4);
 
-				// Check if this exists
-				if (class_exists($className))
-				{
-					return $className;
-				}
+				return $className;
 			}
 		}
 

@@ -37,20 +37,19 @@
  * @filesource
  */
 
+use Config\App;
+use Config\Logger;
+use Config\Database;
+use Config\Services;
+use CodeIgniter\HTTP\URI;
+use Laminas\Escaper\Escaper;
 use CodeIgniter\Config\Config;
-use CodeIgniter\Database\ConnectionInterface;
-use CodeIgniter\Files\Exceptions\FileNotFoundException;
+use CodeIgniter\Test\TestLogger;
 use CodeIgniter\HTTP\RedirectResponse;
 use CodeIgniter\HTTP\RequestInterface;
 use CodeIgniter\HTTP\ResponseInterface;
-use CodeIgniter\HTTP\URI;
-use CodeIgniter\Test\TestLogger;
-use Config\App;
-use Config\Database;
-use Config\Logger;
-use Config\Services;
-use Config\View;
-use Laminas\Escaper\Escaper;
+use CodeIgniter\Database\ConnectionInterface;
+use CodeIgniter\Files\Exceptions\FileNotFoundException;
 
 /**
  * Common Functions
@@ -109,34 +108,6 @@ if (! function_exists('cache'))
 
 		// Still here? Retrieve the value.
 		return $cache->get($key);
-	}
-}
-
-if (! function_exists('command'))
-{
-	/**
-	 * Runs a single command.
-	 * Input expected in a single string as would
-	 * be used on the command line itself:
-	 *
-	 *  > command('migrate:create SomeMigration');
-	 *
-	 * @param string $command
-	 *
-	 * @return false|string
-	 */
-	function command(string $command)
-	{
-		$runner = service('commands');
-
-		$params  = explode(' ', $command);
-		$command = array_shift($params);
-
-		ob_start();
-		$runner->run($command, $params);
-		$output = ob_get_clean();
-
-		return $output;
 	}
 }
 
@@ -275,11 +246,9 @@ if (! function_exists('dd'))
 	 */
 	function dd(...$vars)
 	{
-		// @codeCoverageIgnoreStart
 		Kint::$aliases[] = 'dd';
 		Kint::dump(...$vars);
 		exit;
-		// @codeCoverageIgnoreEnd
 	}
 }
 
@@ -350,7 +319,7 @@ if (! function_exists('esc'))
 	{
 		if (is_array($data))
 		{
-			foreach ($data as &$value)
+			foreach ($data as $key => &$value)
 			{
 				$value = esc($value, $context);
 			}
@@ -415,7 +384,10 @@ if (! function_exists('force_https'))
 	 * @param RequestInterface  $request
 	 * @param ResponseInterface $response
 	 *
-	 * @throws \CodeIgniter\HTTP\Exceptions\HTTPException
+	 * Not testable, as it will exit!
+	 *
+	 * @throws             \CodeIgniter\HTTP\Exceptions\HTTPException
+	 * @codeCoverageIgnore
 	 */
 	function force_https(int $duration = 31536000, RequestInterface $request = null, ResponseInterface $response = null)
 	{
@@ -428,37 +400,25 @@ if (! function_exists('force_https'))
 			$response = Services::response(null, true);
 		}
 
-		if ((ENVIRONMENT !== 'testing' && (is_cli() || $request->isSecure())) || (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'test'))
+		if (is_cli() || $request->isSecure())
 		{
-			// @codeCoverageIgnoreStart
 			return;
-			// @codeCoverageIgnoreEnd
 		}
 
-		// If the session status is active, we should regenerate
+		// If the session library is loaded, we should regenerate
 		// the session ID for safety sake.
-		if (ENVIRONMENT !== 'testing' && session_status() === PHP_SESSION_ACTIVE)
+		if (class_exists('Session', false))
 		{
-			// @codeCoverageIgnoreStart
 			Services::session(null, true)
 				->regenerate();
-			// @codeCoverageIgnoreEnd
 		}
 
-		$baseURL = config(App::class)->baseURL;
-
-		if (strpos($baseURL, 'https://') === 0)
-		{
-			$baseURL = (string) substr($baseURL, strlen('https://'));
-		}
-		elseif (strpos($baseURL, 'http://') === 0)
-		{
-			$baseURL = (string) substr($baseURL, strlen('http://'));
-		}
+		$uri = $request->uri;
+		$uri->setScheme('https');
 
 		$uri = URI::createURIString(
-			'https', $baseURL, $request->uri->getPath(), // Absolute URIs should use a "/" for an empty path
-			$request->uri->getQuery(), $request->uri->getFragment()
+			$uri->getScheme(), $uri->getAuthority(true), $uri->getPath(), // Absolute URIs should use a "/" for an empty path
+			$uri->getQuery(), $uri->getFragment()
 		);
 
 		// Set an HSTS header
@@ -466,12 +426,7 @@ if (! function_exists('force_https'))
 		$response->redirect($uri);
 		$response->sendHeaders();
 
-		if (ENVIRONMENT !== 'testing')
-		{
-			// @codeCoverageIgnoreStart
-			exit();
-			// @codeCoverageIgnoreEnd
-		}
+		exit();
 	}
 }
 
@@ -792,9 +747,7 @@ if (! function_exists('old'))
 		// Ensure the session is loaded
 		if (session_status() === PHP_SESSION_NONE && ENVIRONMENT !== 'testing')
 		{
-			// @codeCoverageIgnoreStart
 			session();
-			// @codeCoverageIgnoreEnd
 		}
 
 		$request = Services::request();
@@ -1107,9 +1060,8 @@ if (! function_exists('view'))
 		 */
 		$renderer = Services::renderer();
 
-		$saveData = config(View::class)->saveData;
-
-		if (array_key_exists('saveData', $options))
+		$saveData = true;
+		if (array_key_exists('saveData', $options) && $options['saveData'] === true)
 		{
 			$saveData = (bool) $options['saveData'];
 			unset($options['saveData']);

@@ -48,6 +48,13 @@ class Builder extends BaseBuilder
 {
 
 	/**
+	 * Identifier escape character
+	 *
+	 * @var string
+	 */
+	protected $escapeChar = '`';
+
+	/**
 	 * Default installs of SQLite typically do not
 	 * support limiting delete clauses.
 	 *

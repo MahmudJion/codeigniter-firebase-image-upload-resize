@@ -61,7 +61,7 @@ class Rules
 	 */
 	public function differs(string $str = null, string $field, array $data): bool
 	{
-		return array_key_exists($field, $data) && $str !== $data[$field];
+		return array_key_exists($field, $data) ? ($str !== $data[$field]) : false;
 	}
 
 	//--------------------------------------------------------------------
@@ -87,10 +87,11 @@ class Rules
 	 *
 	 * @param string $str
 	 * @param string $val
+	 * @param array  $data
 	 *
 	 * @return boolean
 	 */
-	public function exact_length(string $str = null, string $val): bool
+	public function exact_length(string $str = null, string $val, array $data): bool
 	{
 		$val = explode(',', $val);
 		foreach ($val as $tmp)
@@ -111,12 +112,13 @@ class Rules
 	 *
 	 * @param string $str
 	 * @param string $min
+	 * @param array  $data
 	 *
 	 * @return boolean
 	 */
-	public function greater_than(string $str = null, string $min): bool
+	public function greater_than(string $str = null, string $min, array $data): bool
 	{
-		return is_numeric($str) && $str > $min;
+		return is_numeric($str) ? ($str > $min) : false;
 	}
 
 	//--------------------------------------------------------------------
@@ -126,12 +128,13 @@ class Rules
 	 *
 	 * @param string $str
 	 * @param string $min
+	 * @param array  $data
 	 *
 	 * @return boolean
 	 */
-	public function greater_than_equal_to(string $str = null, string $min): bool
+	public function greater_than_equal_to(string $str = null, string $min, array $data): bool
 	{
-		return is_numeric($str) && $str >= $min;
+		return is_numeric($str) ? ($str >= $min) : false;
 	}
 
 	//--------------------------------------------------------------------
@@ -168,10 +171,7 @@ class Rules
 
 		if (! empty($where_field) && ! empty($where_value))
 		{
-			if (! preg_match('/^\{(\w+)\}$/', $where_value))
-			{
-				$row = $row->where($where_field, $where_value);
-			}
+			$row = $row->where($where_field, $where_value);
 		}
 
 		return (bool) ($row->get()
@@ -183,12 +183,12 @@ class Rules
 	/**
 	 * Value should be within an array of values
 	 *
-	 * @param string $value
-	 * @param string $list
-	 *
+	 * @param  string $value
+	 * @param  string $list
+	 * @param  array  $data
 	 * @return boolean
 	 */
-	public function in_list(string $value = null, string $list): bool
+	public function in_list(string $value = null, string $list, array $data): bool
 	{
 		$list = explode(',', $list);
 		$list = array_map(function ($value) {
@@ -231,10 +231,7 @@ class Rules
 
 		if (! empty($ignoreField) && ! empty($ignoreValue))
 		{
-			if (! preg_match('/^\{(\w+)\}$/', $ignoreValue))
-			{
-				$row = $row->where("{$ignoreField} !=", $ignoreValue);
-			}
+			$row = $row->where("{$ignoreField} !=", $ignoreValue);
 		}
 
 		return (bool) ($row->get()
@@ -253,7 +250,7 @@ class Rules
 	 */
 	public function less_than(string $str = null, string $max): bool
 	{
-		return is_numeric($str) && $str < $max;
+		return is_numeric($str) ? ($str < $max) : false;
 	}
 
 	//--------------------------------------------------------------------
@@ -268,7 +265,7 @@ class Rules
 	 */
 	public function less_than_equal_to(string $str = null, string $max): bool
 	{
-		return is_numeric($str) && $str <= $max;
+		return is_numeric($str) ? ($str <= $max) : false;
 	}
 
 	//--------------------------------------------------------------------
@@ -284,7 +281,7 @@ class Rules
 	 */
 	public function matches(string $str = null, string $field, array $data): bool
 	{
-		return array_key_exists($field, $data) && $str === $data[$field];
+		return array_key_exists($field, $data) ? ($str === $data[$field]) : false;
 	}
 
 	//--------------------------------------------------------------------
@@ -294,10 +291,11 @@ class Rules
 	 *
 	 * @param string $str
 	 * @param string $val
+	 * @param array  $data
 	 *
 	 * @return boolean
 	 */
-	public function max_length(string $str = null, string $val): bool
+	public function max_length(string $str = null, string $val, array $data): bool
 	{
 		return ($val >= mb_strlen($str));
 	}
@@ -309,10 +307,11 @@ class Rules
 	 *
 	 * @param string $str
 	 * @param string $val
+	 * @param array  $data
 	 *
 	 * @return boolean
 	 */
-	public function min_length(string $str = null, string $val): bool
+	public function min_length(string $str = null, string $val, array $data): bool
 	{
 		return ($val <= mb_strlen($str));
 	}

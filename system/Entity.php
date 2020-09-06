@@ -39,13 +39,14 @@
 
 namespace CodeIgniter;
 
-use CodeIgniter\Exceptions\CastException;
+use CodeIgniter\Exceptions\EntityException;
 use CodeIgniter\I18n\Time;
+use CodeIgniter\Exceptions\CastException;
 
 /**
  * Entity encapsulation, for use with CodeIgniter\Model
  */
-class Entity implements \JsonSerializable
+class Entity
 {
 	/**
 	 * Maps names used in sets and gets against unique
@@ -124,7 +125,18 @@ class Entity implements \JsonSerializable
 
 		foreach ($data as $key => $value)
 		{
-			$this->$key = $value;
+			$key = $this->mapProperty($key);
+
+			$method = 'set' . str_replace(' ', '', ucwords(str_replace(['-', '_'], ' ', $key)));
+
+			if (method_exists($this, $method))
+			{
+				$this->$method($value);
+			}
+			else
+			{
+				$this->attributes[$key] = $value;
+			}
 		}
 
 		return $this;
@@ -153,7 +165,7 @@ class Entity implements \JsonSerializable
 		// allow our magic methods a chance to do their thing.
 		foreach ($this->attributes as $key => $value)
 		{
-			if (strpos($key, '_') === 0)
+			if (substr($key, 0, 1) === '_')
 			{
 				continue;
 			}
@@ -341,7 +353,7 @@ class Entity implements \JsonSerializable
 
 		if (array_key_exists($key, $this->casts))
 		{
-			$isNullable = strpos($this->casts[$key], '?') === 0;
+			$isNullable = substr($this->casts[$key], 0, 1) === '?';
 			$castTo     = $isNullable ? substr($this->casts[$key], 1) : $this->casts[$key];
 		}
 
@@ -360,7 +372,7 @@ class Entity implements \JsonSerializable
 			// back to the database.
 			if (($castTo === 'json' || $castTo === 'json-array') && function_exists('json_encode'))
 			{
-				$value = json_encode($value, JSON_UNESCAPED_UNICODE);
+				$value = json_encode($value);
 
 				if (json_last_error() !== JSON_ERROR_NONE)
 				{
@@ -518,7 +530,7 @@ class Entity implements \JsonSerializable
 
 	protected function castAs($value, string $type)
 	{
-		if (strpos($type, '?') === 0)
+		if (substr($type, 0, 1) === '?')
 		{
 			if ($value === null)
 			{
@@ -558,15 +570,17 @@ class Entity implements \JsonSerializable
 				$value = (array)$value;
 				break;
 			case 'json':
-				$value = $this->castAsJson($value);
+				$value = $this->castAsJson($value, false);
 				break;
 			case 'json-array':
 				$value = $this->castAsJson($value, true);
 				break;
 			case 'datetime':
-				return $this->mutateDate($value);
+				return new \DateTime($value);
+				break;
 			case 'timestamp':
 				return strtotime($value);
+				break;
 		}
 
 		return $value;
@@ -599,16 +613,5 @@ class Entity implements \JsonSerializable
 			}
 		}
 		return $tmp;
-	}
-
-	/**
-	 * Support for json_encode()
-	 *
-	 * @return array|mixed
-	 * @throws \Exception
-	 */
-	public function jsonSerialize()
-	{
-		return $this->toArray();
 	}
 }

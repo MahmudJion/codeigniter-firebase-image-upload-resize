@@ -1,5 +1,6 @@
 <?php
 
+
 /**
  * CodeIgniter
  *
@@ -61,7 +62,8 @@ class WincacheHandler implements CacheInterface
 	/**
 	 * Constructor.
 	 *
-	 * @param \Config\Cache $config
+	 * @param  type $config
+	 * @throws type
 	 */
 	public function __construct($config)
 	{
@@ -85,11 +87,11 @@ class WincacheHandler implements CacheInterface
 	/**
 	 * Attempts to fetch an item from the cache store.
 	 *
+	 * @codeCoverageIgnore
+	 *
 	 * @param string $key Cache item name
 	 *
 	 * @return mixed
-	 *
-	 * @codeCoverageIgnore
 	 */
 	public function get(string $key)
 	{
@@ -107,13 +109,13 @@ class WincacheHandler implements CacheInterface
 	/**
 	 * Saves an item to the cache store.
 	 *
+	 * @codeCoverageIgnore
+	 *
 	 * @param string  $key   Cache item name
 	 * @param mixed   $value The data to save
 	 * @param integer $ttl   Time To Live, in seconds (default 60)
 	 *
 	 * @return mixed
-	 *
-	 * @codeCoverageIgnore
 	 */
 	public function save(string $key, $value, int $ttl = 60)
 	{
@@ -127,11 +129,11 @@ class WincacheHandler implements CacheInterface
 	/**
 	 * Deletes a specific item from the cache store.
 	 *
+	 * @codeCoverageIgnore
+	 *
 	 * @param string $key Cache item name
 	 *
-	 * @return boolean
-	 *
-	 * @codeCoverageIgnore
+	 * @return mixed
 	 */
 	public function delete(string $key)
 	{
@@ -145,12 +147,11 @@ class WincacheHandler implements CacheInterface
 	/**
 	 * Performs atomic incrementation of a raw stored value.
 	 *
-	 * @param string  $key    Cache ID
-	 * @param integer $offset Step/value to increase by
+	 * @codeCoverageIgnore
+	 * @param              string  $key    Cache ID
+	 * @param              integer $offset Step/value to increase by
 	 *
 	 * @return mixed
-	 *
-	 * @codeCoverageIgnore
 	 */
 	public function increment(string $key, int $offset = 1)
 	{
@@ -167,12 +168,12 @@ class WincacheHandler implements CacheInterface
 	/**
 	 * Performs atomic decrementation of a raw stored value.
 	 *
+	 * @codeCoverageIgnore
+	 *
 	 * @param string  $key    Cache ID
 	 * @param integer $offset Step/value to increase by
 	 *
 	 * @return mixed
-	 *
-	 * @codeCoverageIgnore
 	 */
 	public function decrement(string $key, int $offset = 1)
 	{
@@ -189,9 +190,9 @@ class WincacheHandler implements CacheInterface
 	/**
 	 * Will delete all items in the entire cache.
 	 *
-	 * @return boolean
-	 *
 	 * @codeCoverageIgnore
+	 *
+	 * @return mixed
 	 */
 	public function clean()
 	{
@@ -203,12 +204,12 @@ class WincacheHandler implements CacheInterface
 	/**
 	 * Returns information on the entire cache.
 	 *
+	 * @codeCoverageIgnore
+	 *
 	 * The information returned and the structure of the data
 	 * varies depending on the handler.
 	 *
 	 * @return mixed
-	 *
-	 * @codeCoverageIgnore
 	 */
 	public function getCacheInfo()
 	{
@@ -220,11 +221,10 @@ class WincacheHandler implements CacheInterface
 	/**
 	 * Returns detailed information about the specific item in the cache.
 	 *
-	 * @param string $key Cache item name.
+	 * @codeCoverageIgnore
+	 * @param              string $key Cache item name.
 	 *
 	 * @return mixed
-	 *
-	 * @codeCoverageIgnore
 	 */
 	public function getMetaData(string $key)
 	{

@@ -39,8 +39,8 @@
 
 namespace CodeIgniter\Database\MySQLi;
 
-use CodeIgniter\Database\BasePreparedQuery;
 use CodeIgniter\Database\PreparedQueryInterface;
+use CodeIgniter\Database\BasePreparedQuery;
 
 /**
  * Prepared query for MySQLi
@@ -116,7 +116,9 @@ class PreparedQuery extends BasePreparedQuery implements PreparedQueryInterface
 		// Bind it
 		$this->statement->bind_param($bindTypes, ...$data);
 
-		return $this->statement->execute();
+		$success = $this->statement->execute();
+
+		return $success;
 	}
 
 	//--------------------------------------------------------------------

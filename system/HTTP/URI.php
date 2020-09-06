@@ -153,13 +153,6 @@ class URI
 	 */
 	protected $showPassword = false;
 
-	/**
-	 * If true, will continue instead of throwing exceptions.
-	 *
-	 * @var boolean
-	 */
-	protected $silent = false;
-
 	//--------------------------------------------------------------------
 
 	/**
@@ -180,23 +173,6 @@ class URI
 	//--------------------------------------------------------------------
 
 	/**
-	 * If $silent == true, then will not throw exceptions and will
-	 * attempt to continue gracefully.
-	 *
-	 * @param boolean $silent
-	 *
-	 * @return URI
-	 */
-	public function setSilent(bool $silent = true)
-	{
-		$this->silent = $silent;
-
-		return $this;
-	}
-
-	//--------------------------------------------------------------------
-
-	/**
 	 * Sets and overwrites any current URI information.
 	 *
 	 * @param string|null $uri
@@ -211,11 +187,6 @@ class URI
 
 			if ($parts === false)
 			{
-				if ($this->silent)
-				{
-					return $this;
-				}
-
 				throw HTTPException::forUnableToParseURI($uri);
 			}
 
@@ -498,24 +469,23 @@ class URI
 	/**
 	 * Returns the value of a specific segment of the URI path.
 	 *
-	 * @param integer $number  Segment number
-	 * @param string  $default Default value
+	 * @param integer $number
 	 *
 	 * @return string     The value of the segment. If no segment is found,
 	 *                    throws InvalidArgumentError
 	 */
-	public function getSegment(int $number, string $default = ''): string
+	public function getSegment(int $number): string
 	{
 		// The segment should treat the array as 1-based for the user
 		// but we still have to deal with a zero-based array.
 		$number -= 1;
 
-		if ($number > count($this->segments) && ! $this->silent)
+		if ($number > count($this->segments))
 		{
 			throw HTTPException::forURISegmentOutOfRange($number);
 		}
 
-		return $this->segments[$number] ?? $default;
+		return $this->segments[$number] ?? '';
 	}
 
 	/**
@@ -535,11 +505,6 @@ class URI
 
 		if ($number > count($this->segments) + 1)
 		{
-			if ($this->silent)
-			{
-				return $this;
-			}
-
 			throw HTTPException::forURISegmentOutOfRange($number);
 		}
 
@@ -601,9 +566,9 @@ class URI
 			$uri .= $authority;
 		}
 
-		if ($path !== '')
+		if ($path)
 		{
-			$uri .= substr($uri, -1, 1) !== '/' ? '/' . ltrim($path, '/') : ltrim($path, '/');
+			$uri .= substr($uri, -1, 1) !== '/' ? '/' . ltrim($path, '/') : $path;
 		}
 
 		if ($query)
@@ -632,12 +597,7 @@ class URI
 	{
 		$parts = parse_url($str);
 
-		if (! isset($parts['path']))
-		{
-			$parts['path'] = $this->getPath();
-		}
-
-		if (empty($parts['host']) && $parts['path'] !== '')
+		if (empty($parts['host']) && ! empty($parts['path']))
 		{
 			$parts['host'] = $parts['path'];
 			unset($parts['path']);
@@ -724,11 +684,6 @@ class URI
 
 		if ($port <= 0 || $port > 65535)
 		{
-			if ($this->silent)
-			{
-				return $this;
-			}
-
 			throw HTTPException::forInvalidPort($port);
 		}
 
@@ -750,9 +705,7 @@ class URI
 	{
 		$this->path = $this->filterPath($path);
 
-		$tempPath = trim($this->path, '/');
-
-		$this->segments = ($tempPath === '') ? [] : explode('/', $tempPath);
+		$this->segments = explode('/', $this->path);
 
 		return $this;
 	}
@@ -768,9 +721,7 @@ class URI
 	{
 		$this->path = $this->filterPath(implode('/', $this->segments));
 
-		$tempPath = trim($this->path, '/');
-
-		$this->segments = ($tempPath === '') ? [] : explode('/', $tempPath);
+		$this->segments = explode('/', $this->path);
 
 		return $this;
 	}
@@ -789,11 +740,6 @@ class URI
 	{
 		if (strpos($query, '#') !== false)
 		{
-			if ($this->silent)
-			{
-				return $this;
-			}
-
 			throw HTTPException::forMalformedQueryString();
 		}
 
@@ -967,7 +913,7 @@ class URI
 		{
 			$this->user = $parts['user'];
 		}
-		if (isset($parts['path']) && $parts['path'] !== '')
+		if (! empty($parts['path']))
 		{
 			$this->path = $this->filterPath($parts['path']);
 		}
@@ -1007,11 +953,9 @@ class URI
 		}
 
 		// Populate our segments array
-		if (isset($parts['path']) && $parts['path'] !== '')
+		if (! empty($parts['path']))
 		{
-			$tempPath = trim($parts['path'], '/');
-
-			$this->segments = ($tempPath === '') ? [] : explode('/', $tempPath);
+			$this->segments = explode('/', trim($parts['path'], '/'));
 		}
 	}
 
@@ -1104,14 +1048,14 @@ class URI
 	 */
 	protected function mergePaths(URI $base, URI $reference): string
 	{
-		if (! empty($base->getAuthority()) && $base->getPath() === '')
+		if (! empty($base->getAuthority()) && empty($base->getPath()))
 		{
 			return '/' . ltrim($reference->getPath(), '/ ');
 		}
 
 		$path = explode('/', $base->getPath());
 
-		if ($path[0] === '')
+		if (empty($path[0]))
 		{
 			unset($path[0]);
 		}
@@ -1138,7 +1082,7 @@ class URI
 	 */
 	public function removeDotSegments(string $path): string
 	{
-		if ($path === '' || $path === '/')
+		if (empty($path) || $path === '/')
 		{
 			return $path;
 		}
@@ -1147,7 +1091,7 @@ class URI
 
 		$input = explode('/', $path);
 
-		if ($input[0] === '')
+		if (empty($input[0]))
 		{
 			unset($input[0]);
 			$input = array_values($input);

@@ -180,9 +180,10 @@ if (! function_exists('counted'))
 	 */
 	function counted(int $count, string $string): string
 	{
-		$result = "{$count} ";
+		$result  = "{$count} ";
+		$result .= $count === 1 ? singular($string) : plural($string);
 
-		return $result . ($count === 1 ? singular($string) : plural($string));
+		return $result;
 	}
 }
 
@@ -262,11 +263,12 @@ if (! function_exists('humanize'))
 	function humanize(string $string, string $separator = '_'): string
 	{
 		$replacement = trim($string);
-
-		return ucwords
+		$upperCased  = ucwords
 				(
 				preg_replace('/[' . $separator . ']+/', ' ', $replacement)
 		);
+
+		return $upperCased;
 	}
 }
 

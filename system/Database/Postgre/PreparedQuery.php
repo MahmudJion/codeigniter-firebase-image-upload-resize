@@ -39,8 +39,8 @@
 
 namespace CodeIgniter\Database\Postgre;
 
-use CodeIgniter\Database\BasePreparedQuery;
 use CodeIgniter\Database\PreparedQueryInterface;
+use CodeIgniter\Database\BasePreparedQuery;
 
 /**
  * Prepared query for Postgre
@@ -148,10 +148,12 @@ class PreparedQuery extends BasePreparedQuery implements PreparedQueryInterface
 		// Track our current value
 		$count = 0;
 
-		return preg_replace_callback('/\?/', function ($matches) use (&$count) {
+		$sql = preg_replace_callback('/\?/', function ($matches) use (&$count) {
 			$count ++;
 			return "\${$count}";
 		}, $sql);
+
+		return $sql;
 	}
 
 	//--------------------------------------------------------------------

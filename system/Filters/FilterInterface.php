@@ -59,11 +59,10 @@ interface FilterInterface
 	 * redirects, etc.
 	 *
 	 * @param \CodeIgniter\HTTP\RequestInterface $request
-	 * @param null                               $arguments
 	 *
 	 * @return mixed
 	 */
-	public function before(RequestInterface $request, $arguments = null);
+	public function before(RequestInterface $request);
 
 	//--------------------------------------------------------------------
 
@@ -75,11 +74,10 @@ interface FilterInterface
 	 *
 	 * @param \CodeIgniter\HTTP\RequestInterface  $request
 	 * @param \CodeIgniter\HTTP\ResponseInterface $response
-	 * @param null                                $arguments
 	 *
 	 * @return mixed
 	 */
-	public function after(RequestInterface $request, ResponseInterface $response, $arguments = null);
+	public function after(RequestInterface $request, ResponseInterface $response);
 
 	//--------------------------------------------------------------------
 }

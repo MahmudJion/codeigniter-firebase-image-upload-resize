@@ -1,5 +1,4 @@
 <?php
-
 /**
  * CodeIgniter
  *
@@ -107,7 +106,7 @@ abstract class BaseCommand
 	 * Instance of the CommandRunner controller
 	 * so commands can call other commands.
 	 *
-	 * @var \CodeIgniter\CLI\Commands
+	 * @var \CodeIgniter\CLI\CommandRunner
 	 */
 	protected $commands;
 
@@ -116,10 +115,10 @@ abstract class BaseCommand
 	/**
 	 * BaseCommand constructor.
 	 *
-	 * @param \Psr\Log\LoggerInterface  $logger
-	 * @param \CodeIgniter\CLI\Commands $commands
+	 * @param \Psr\Log\LoggerInterface       $logger
+	 * @param \CodeIgniter\CLI\CommandRunner $commands
 	 */
-	public function __construct(LoggerInterface $logger, Commands $commands)
+	public function __construct(LoggerInterface $logger, CommandRunner $commands)
 	{
 		$this->logger   = $logger;
 		$this->commands = $commands;
@@ -152,7 +151,7 @@ abstract class BaseCommand
 		// for the command name.
 		array_unshift($params, $command);
 
-		return $this->commands->run($command, $params);
+		return $this->commands->index($params);
 	}
 
 	//--------------------------------------------------------------------

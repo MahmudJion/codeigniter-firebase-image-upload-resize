@@ -38,12 +38,14 @@
 
 namespace CodeIgniter\Test;
 
-use CodeIgniter\Database\BaseConnection;
-use CodeIgniter\Database\MigrationRunner;
-use CodeIgniter\Exceptions\ConfigException;
+use CodeIgniter\Config\Config;
+use Config\Autoload;
 use Config\Database;
 use Config\Migrations;
 use Config\Services;
+use CodeIgniter\Database\BaseConnection;
+use CodeIgniter\Database\MigrationRunner;
+use CodeIgniter\Exceptions\ConfigException;
 
 /**
  * CIDatabaseTestCase
@@ -167,13 +169,43 @@ class CIDatabaseTestCase extends CIUnitTestCase
 
 		if ($this->refresh === true)
 		{
-			$this->regressDatabase();
+			// Delete all of the tables to ensure we're at a clean start.
+			$tables = $this->db->listTables();
 
-			// Reset counts on faked items
-			Fabricator::resetCounts();
+			if (is_array($tables))
+			{
+				$forge = Database::forge('tests');
+
+				foreach ($tables as $table)
+				{
+					if ($table === $this->db->DBPrefix . 'migrations')
+					{
+						$this->db->table($table)->truncate();
+						continue;
+					}
+
+					$forge->dropTable($table, true);
+				}
+			}
+
+			// If no namespace was specified then migrate all
+			if (empty($this->namespace))
+			{
+				$this->migrations->setNamespace(null);
+				$this->migrations->latest('tests');
+			}
+
+			// Run migrations for each specified namespace
+			else
+			{
+				$namespaces = is_array($this->namespace) ? $this->namespace : [$this->namespace];
+				foreach ($namespaces as $namespace)
+				{
+					$this->migrations->setNamespace($namespace);
+					$this->migrations->latest('tests');
+				}
+			}
 		}
-
-		$this->migrateDatabase();
 
 		if (! empty($this->seed))
 		{
@@ -196,10 +228,8 @@ class CIDatabaseTestCase extends CIUnitTestCase
 	 * Takes care of any required cleanup after the test, like
 	 * removing any rows inserted via $this->hasInDatabase()
 	 */
-	protected function tearDown(): void
+	public function tearDown(): void
 	{
-		parent::tearDown();
-
 		if (! empty($this->insertCache))
 		{
 			foreach ($this->insertCache as $row)
@@ -212,55 +242,6 @@ class CIDatabaseTestCase extends CIUnitTestCase
 	}
 
 	//--------------------------------------------------------------------
-
-	/**
-	 * Regress migrations as defined by the class
-	 */
-	protected function regressDatabase()
-	{
-		// If no namespace was specified then rollback all
-		if (empty($this->namespace))
-		{
-			$this->migrations->setNamespace(null);
-			$this->migrations->regress(0, 'tests');
-		}
-
-		// Regress each specified namespace
-		else
-		{
-			$namespaces = is_array($this->namespace) ? $this->namespace : [$this->namespace];
-
-			foreach ($namespaces as $namespace)
-			{
-				$this->migrations->setNamespace($namespace);
-				$this->migrations->regress(0, 'tests');
-			}
-		}
-	}
-
-	/**
-	 * Run migrations as defined by the class
-	 */
-	protected function migrateDatabase()
-	{
-		// If no namespace was specified then migrate all
-		if (empty($this->namespace))
-		{
-			$this->migrations->setNamespace(null);
-			$this->migrations->latest('tests');
-		}
-		// Run migrations for each specified namespace
-		else
-		{
-			$namespaces = is_array($this->namespace) ? $this->namespace : [$this->namespace];
-
-			foreach ($namespaces as $namespace)
-			{
-				$this->migrations->setNamespace($namespace);
-				$this->migrations->latest('tests');
-			}
-		}
-	}
 
 	/**
 	 * Seeds that database with a specific seeder.

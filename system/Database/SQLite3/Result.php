@@ -101,10 +101,8 @@ class Result extends BaseResult implements ResultInterface
 			$retVal[$i]             = new \stdClass();
 			$retVal[$i]->name       = $this->resultID->columnName($i);
 			$type                   = $this->resultID->columnType($i);
-			$retVal[$i]->type       = $type;
-			$retVal[$i]->type_name  = isset($data_types[$type]) ? $data_types[$type] : null;
+			$retVal[$i]->type       = isset($data_types[$type]) ? $data_types[$type] : $type;
 			$retVal[$i]->max_length = null;
-			$retVal[$i]->length     = null;
 		}
 
 		return $retVal;

@@ -11,10 +11,6 @@
 
 class FrameworkException extends \RuntimeException implements ExceptionInterface
 {
-	public static function forEnabledZlibOutputCompression()
-	{
-		return new static(lang('Core.enabledZlibOutputCompression'));
-	}
 
 	public static function forInvalidFile(string $path)
 	{
@@ -35,4 +31,5 @@ class FrameworkException extends \RuntimeException implements ExceptionInterface
 	{
 		return new static(lang('Core.noHandlers', [$class]));
 	}
+
 }

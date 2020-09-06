@@ -152,7 +152,7 @@ class FormatRules
 	 */
 	public function decimal(string $str = null): bool
 	{
-		return (bool) preg_match('/^[-+]?[0-9]{0,}\.?[0-9]+$/', $str);
+		return (bool) preg_match('/^[\-+]?[0-9]+(|\.[0-9]+)$/', $str);
 	}
 
 	/**
@@ -218,10 +218,11 @@ class FormatRules
 	 *
 	 * @param string $str
 	 * @param string $pattern
+	 * @param array  $data    Other field/value pairs
 	 *
 	 * @return boolean
 	 */
-	public function regex_match(string $str = null, string $pattern): bool
+	public function regex_match(string $str = null, string $pattern, array $data): bool
 	{
 		if (strpos($pattern, '/') !== 0)
 		{
@@ -328,8 +329,8 @@ class FormatRules
 	 * @return boolean
 	 */
 	public function valid_ip(string $ip = null, string $which = null): bool
-	{
-		if (empty($ip))
+	{	
+		if(empty($ip))
 		{
 			return false;
 		}
@@ -346,7 +347,7 @@ class FormatRules
 				break;
 		}
 
-		return (bool) filter_var($ip, FILTER_VALIDATE_IP, $which) || (! ctype_print($ip) && (bool) filter_var(inet_ntop($ip), FILTER_VALIDATE_IP, $which));
+		return (bool) filter_var($ip, FILTER_VALIDATE_IP, $which) || (!ctype_print($ip) && (bool) filter_var(inet_ntop($ip), FILTER_VALIDATE_IP, $which));
 	}
 
 	/**

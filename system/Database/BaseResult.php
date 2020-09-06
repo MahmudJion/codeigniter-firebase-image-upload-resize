@@ -39,8 +39,6 @@
 
 namespace CodeIgniter\Database;
 
-use CodeIgniter\Entity;
-
 /**
  * Class BaseResult
  */
@@ -167,11 +165,11 @@ abstract class BaseResult implements ResultInterface
 		$_data = null;
 		if (($c = count($this->resultArray)) > 0)
 		{
-			$_data = 'resultArray';
+			$_data = 'result_array';
 		}
 		elseif (($c = count($this->resultObject)) > 0)
 		{
-			$_data = 'resultObject';
+			$_data = 'result_object';
 		}
 
 		if ($_data !== null)
@@ -189,12 +187,12 @@ abstract class BaseResult implements ResultInterface
 			return $this->customResultObject[$className];
 		}
 
-		is_null($this->rowData) || $this->dataSeek();
+		is_null($this->rowData) || $this->dataSeek(0);
 		$this->customResultObject[$className] = [];
 
 		while ($row = $this->fetchObject($className))
 		{
-			if (! is_subclass_of($row, Entity::class) && method_exists($row, 'syncOriginal'))
+			if (method_exists($row, 'syncOriginal'))
 			{
 				$row->syncOriginal();
 			}
@@ -239,7 +237,7 @@ abstract class BaseResult implements ResultInterface
 			return $this->resultArray;
 		}
 
-		is_null($this->rowData) || $this->dataSeek();
+		is_null($this->rowData) || $this->dataSeek(0);
 		while ($row = $this->fetchAssoc())
 		{
 			$this->resultArray[] = $row;
@@ -282,10 +280,10 @@ abstract class BaseResult implements ResultInterface
 			return $this->resultObject;
 		}
 
-		is_null($this->rowData) || $this->dataSeek();
+		is_null($this->rowData) || $this->dataSeek(0);
 		while ($row = $this->fetchObject())
 		{
-			if (! is_subclass_of($row, Entity::class) && method_exists($row, 'syncOriginal'))
+			if (method_exists($row, 'syncOriginal'))
 			{
 				$row->syncOriginal();
 			}
@@ -314,7 +312,7 @@ abstract class BaseResult implements ResultInterface
 		if (! is_numeric($n))
 		{
 			// We cache the row data for subsequent uses
-			is_array($this->rowData) || $this->rowData = $this->getRowArray();
+			is_array($this->rowData) || $this->rowData = $this->getRowArray(0);
 
 			// array_key_exists() instead of isset() to allow for NULL values
 			if (empty($this->rowData) || ! array_key_exists($n, $this->rowData))
@@ -435,7 +433,7 @@ abstract class BaseResult implements ResultInterface
 		// We cache the row data for subsequent uses
 		if (! is_array($this->rowData))
 		{
-			$this->rowData = $this->getRowArray();
+			$this->rowData = $this->getRowArray(0);
 		}
 
 		if (is_array($key))

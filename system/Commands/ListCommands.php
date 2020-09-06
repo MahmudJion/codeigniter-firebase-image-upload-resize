@@ -188,8 +188,9 @@ class ListCommands extends BaseCommand
 		$max += $extra + $indent;
 
 		$item = str_repeat(' ', $indent) . $item;
+		$item = str_pad($item, $max);
 
-		return str_pad($item, $max);
+		return $item;
 	}
 
 	//--------------------------------------------------------------------

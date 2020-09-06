@@ -78,15 +78,17 @@ class MemcachedHandler implements CacheInterface
 	/**
 	 * Constructor.
 	 *
-	 * @param \Config\Cache $config
+	 * @param  type $config
+	 * @throws type
 	 */
 	public function __construct($config)
 	{
-		$this->prefix = $config->prefix ?: '';
+		$config       = (array)$config;
+		$this->prefix = $config['prefix'] ?? '';
 
 		if (! empty($config))
 		{
-			$this->config = array_merge($this->config, $config->memcached);
+			$this->config = array_merge($this->config, $config['memcached']);
 		}
 	}
 
@@ -246,8 +248,7 @@ class MemcachedHandler implements CacheInterface
 		{
 			return $this->memcached->set($key, $value, $ttl);
 		}
-
-		if ($this->memcached instanceof \Memcache)
+		elseif ($this->memcached instanceof \Memcache)
 		{
 			return $this->memcached->set($key, $value, 0, $ttl);
 		}
@@ -262,7 +263,7 @@ class MemcachedHandler implements CacheInterface
 	 *
 	 * @param string $key Cache item name
 	 *
-	 * @return boolean
+	 * @return mixed
 	 */
 	public function delete(string $key)
 	{
@@ -321,7 +322,7 @@ class MemcachedHandler implements CacheInterface
 	/**
 	 * Will delete all items in the entire cache.
 	 *
-	 * @return boolean
+	 * @return mixed
 	 */
 	public function clean()
 	{

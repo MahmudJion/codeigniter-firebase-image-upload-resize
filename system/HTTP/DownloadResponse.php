@@ -58,7 +58,7 @@ class DownloadResponse extends Message implements ResponseInterface
 	/**
 	 * Download for file
 	 *
-	 * @var File
+	 * @var File?
 	 */
 	private $file;
 
@@ -263,18 +263,7 @@ class DownloadResponse extends Message implements ResponseInterface
 	//--------------------------------------------------------------------
 
 	/**
-	 * Return an instance with the specified status code and, optionally, reason phrase.
-	 *
-	 * If no reason phrase is specified, will default recommended reason phrase for
-	 * the response's status code.
-	 *
-	 * @see http://tools.ietf.org/html/rfc7231#section-6
-	 * @see http://www.iana.org/assignments/http-status-codes/http-status-codes.xhtml
-	 *
-	 * @param integer $code   The 3-digit integer result code to set.
-	 * @param string  $reason The reason phrase to use with the
-	 *                        provided status code; if none is provided, will
-	 *                        default to the IANA name.
+	 * {@inheritDoc}
 	 *
 	 * @throws DownloadException
 	 */
@@ -286,12 +275,7 @@ class DownloadResponse extends Message implements ResponseInterface
 	//--------------------------------------------------------------------
 
 	/**
-	 * Gets the response response phrase associated with the status code.
-	 *
-	 * @see http://tools.ietf.org/html/rfc7231#section-6
-	 * @see http://www.iana.org/assignments/http-status-codes/http-status-codes.xhtml
-	 *
-	 * @return string
+	 * {@inheritDoc}
 	 */
 	public function getReason(): string
 	{
@@ -304,11 +288,7 @@ class DownloadResponse extends Message implements ResponseInterface
 	//--------------------------------------------------------------------
 
 	/**
-	 * Sets the date header
-	 *
-	 * @param \DateTime $date
-	 *
-	 * @return ResponseInterface
+	 * {@inheritDoc}
 	 */
 	public function setDate(\DateTime $date)
 	{
@@ -322,13 +302,7 @@ class DownloadResponse extends Message implements ResponseInterface
 	//--------------------------------------------------------------------
 
 	/**
-	 * Sets the Content Type header for this response with the mime type
-	 * and, optionally, the charset.
-	 *
-	 * @param string $mime
-	 * @param string $charset
-	 *
-	 * @return ResponseInterface
+	 * {@inheritDoc}
 	 */
 	public function setContentType(string $mime, string $charset = 'UTF-8')
 	{
@@ -349,8 +323,7 @@ class DownloadResponse extends Message implements ResponseInterface
 	}
 
 	/**
-	 * Sets the appropriate headers to ensure this response
-	 * is not cached by the browsers.
+	 * {@inheritDoc}
 	 */
 	public function noCache(): self
 	{
@@ -364,30 +337,7 @@ class DownloadResponse extends Message implements ResponseInterface
 	//--------------------------------------------------------------------
 
 	/**
-	 * A shortcut method that allows the developer to set all of the
-	 * cache-control headers in one method call.
-	 *
-	 * The options array is used to provide the cache-control directives
-	 * for the header. It might look something like:
-	 *
-	 *      $options = [
-	 *          'max-age'  => 300,
-	 *          's-maxage' => 900
-	 *          'etag'     => 'abcde',
-	 *      ];
-	 *
-	 * Typical options are:
-	 *  - etag
-	 *  - last-modified
-	 *  - max-age
-	 *  - s-maxage
-	 *  - private
-	 *  - public
-	 *  - must-revalidate
-	 *  - proxy-revalidate
-	 *  - no-transform
-	 *
-	 * @param array $options
+	 * {@inheritDoc}
 	 *
 	 * @throws DownloadException
 	 */
@@ -484,7 +434,7 @@ class DownloadResponse extends Message implements ResponseInterface
 		}
 
 		// HTTP Status
-		header(sprintf('HTTP/%s %s %s', $this->getProtocolVersion(), $this->getStatusCode(), $this->getReason()), true,
+		header(sprintf('HTTP/%s %s %s', $this->protocolVersion, $this->getStatusCode(), $this->getReason()), true,
 				$this->getStatusCode());
 
 		// Send all of our headers

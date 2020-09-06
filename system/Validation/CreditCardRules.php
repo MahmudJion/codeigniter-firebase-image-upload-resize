@@ -205,10 +205,11 @@ class CreditCardRules
 	 *
 	 * @param string $ccNumber
 	 * @param string $type
+	 * @param array  $data
 	 *
 	 * @return boolean
 	 */
-	public function valid_cc_number(string $ccNumber = null, string $type): bool
+	public function valid_cc_number(string $ccNumber = null, string $type, array $data): bool
 	{
 		$type = strtolower($type);
 		$info = null;

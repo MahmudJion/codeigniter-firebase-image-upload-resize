@@ -96,8 +96,9 @@ if (! function_exists('get_cookie'))
 
 		$request = \Config\Services::request();
 		$filter  = true === $xssClean ? FILTER_SANITIZE_STRING : null;
+		$cookie  = $request->getCookie($prefix . $index, $filter);
 
-		return $request->getCookie($prefix . $index, $filter);
+		return $cookie;
 	}
 }
 

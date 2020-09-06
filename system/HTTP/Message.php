@@ -316,9 +316,7 @@ class Message
 	{
 		$orig_name = $this->getHeaderName($name);
 
-		array_key_exists($orig_name, $this->headers)
-			? $this->headers[$orig_name]->appendValue($value)
-			: $this->setHeader($name, $value);
+		$this->headers[$orig_name]->appendValue($value);
 
 		return $this;
 	}

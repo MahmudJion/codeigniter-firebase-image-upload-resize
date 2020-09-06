@@ -60,7 +60,7 @@ class ImageMagickHandler extends BaseHandler
 	/**
 	 * Stores image resource in memory.
 	 *
-	 * @var string
+	 * @var
 	 */
 	protected $resource;
 
@@ -69,8 +69,8 @@ class ImageMagickHandler extends BaseHandler
 	/**
 	 * Constructor.
 	 *
-	 * @param  \Config\Images $config
-	 * @throws ImageException
+	 * @param  type $config
+	 * @throws type
 	 */
 	public function __construct($config = null)
 	{
@@ -106,9 +106,7 @@ class ImageMagickHandler extends BaseHandler
 			$escape = '';
 		}
 
-		$action = $maintainRatio === true
-			? ' -resize ' . ($this->width ?? 0) . 'x' . ($this->height ?? 0) . ' "' . $source . '" "' . $destination . '"'
-			: ' -resize ' . ($this->width ?? 0) . 'x' . ($this->height ?? 0) . "{$escape}! \"" . $source . '" "' . $destination . '"';
+		$action = $maintainRatio === true ? ' -resize ' . $this->width . 'x' . $this->height . ' "' . $source . '" "' . $destination . '"' : ' -resize ' . $this->width . 'x' . $this->height . "{$escape}! \"" . $source . '" "' . $destination . '"';
 
 		$this->process($action);
 
@@ -128,13 +126,7 @@ class ImageMagickHandler extends BaseHandler
 		$source      = ! empty($this->resource) ? $this->resource : $this->image()->getPathname();
 		$destination = $this->getResourcePath();
 
-		$extent = ' ';
-		if ($this->xAxis >= $this->width || $this->yAxis > $this->height)
-		{
-			$extent = ' -background transparent -extent ' . ($this->width ?? 0) . 'x' . ($this->height ?? 0) . ' ';
-		}
-
-		$action = ' -crop ' . ($this->width ?? 0) . 'x' . ($this->height ?? 0) . '+' . ($this->xAxis ?? 0) . '+' . ($this->yAxis ?? 0) . $extent . escapeshellarg($source) . ' ' . escapeshellarg($destination);
+		$action = ' -crop ' . $this->width . 'x' . $this->height . '+' . $this->xAxis . '+' . $this->yAxis . ' "' . $source . '" "' . $destination . '"';
 
 		$this->process($action);
 
@@ -159,7 +151,7 @@ class ImageMagickHandler extends BaseHandler
 		$source      = ! empty($this->resource) ? $this->resource : $this->image()->getPathname();
 		$destination = $this->getResourcePath();
 
-		$action = ' ' . $angle . ' ' . escapeshellarg($source) . ' ' . escapeshellarg($destination);
+		$action = ' ' . $angle . ' "' . $source . '" "' . $destination . '"';
 
 		$this->process($action);
 
@@ -180,12 +172,12 @@ class ImageMagickHandler extends BaseHandler
 	 */
 	public function _flatten(int $red = 255, int $green = 255, int $blue = 255)
 	{
-		$flatten = "-background 'rgb({$red},{$green},{$blue})' -flatten";
+		$flatten = "-background RGB({$red},{$green},{$blue}) -flatten";
 
 		$source      = ! empty($this->resource) ? $this->resource : $this->image()->getPathname();
 		$destination = $this->getResourcePath();
 
-		$action = ' ' . $flatten . ' ' . escapeshellarg($source) . ' ' . escapeshellarg($destination);
+		$action = ' ' . $flatten . ' "' . $source . '" "' . $destination . '"';
 
 		$this->process($action);
 
@@ -209,7 +201,7 @@ class ImageMagickHandler extends BaseHandler
 		$source      = ! empty($this->resource) ? $this->resource : $this->image()->getPathname();
 		$destination = $this->getResourcePath();
 
-		$action = ' ' . $angle . ' ' . escapeshellarg($source) . ' ' . escapeshellarg($destination);
+		$action = ' ' . $angle . ' "' . $source . '" "' . $destination . '"';
 
 		$this->process($action);
 
@@ -250,11 +242,6 @@ class ImageMagickHandler extends BaseHandler
 		if (empty($this->config->libraryPath))
 		{
 			throw ImageException::forInvalidImageLibraryPath($this->config->libraryPath);
-		}
-
-		if ($action !== '-version')
-		{
-			$this->supportedFormatCheck();
 		}
 
 		if (! preg_match('/convert$/i', $this->config->libraryPath))
@@ -299,29 +286,21 @@ class ImageMagickHandler extends BaseHandler
 	 */
 	public function save(string $target = null, int $quality = 90): bool
 	{
-		$original = $target;
-		$target   = empty($target) ? $this->image()->getPathname() : $target;
+		$target = empty($target) ? $this->image() : $target;
 
 		// If no new resource has been created, then we're
 		// simply copy the existing one.
-		if (empty($this->resource) && $quality === 100)
+		if (empty($this->resource))
 		{
-			if ($original === null)
-			{
-				return true;
-			}
-
 			$name = basename($target);
 			$path = pathinfo($target, PATHINFO_DIRNAME);
 
 			return $this->image()->copy($path, $name);
 		}
 
-		$this->ensureResource();
-
 		// Copy the file through ImageMagick so that it has
 		// a chance to convert file format.
-		$action = escapeshellarg($this->resource) . ' ' . escapeshellarg($target);
+		$action = '"' . $this->resource . '" "' . $target . '"';
 
 		$result = $this->process($action, $quality);
 
@@ -356,44 +335,7 @@ class ImageMagickHandler extends BaseHandler
 
 		$this->resource = WRITEPATH . 'cache/' . time() . '_' . bin2hex(random_bytes(10)) . '.png';
 
-		$name = basename($this->resource);
-		$path = pathinfo($this->resource, PATHINFO_DIRNAME);
-
-		$this->image()->copy($path, $name);
-
 		return $this->resource;
-	}
-
-	//--------------------------------------------------------------------
-
-	/**
-	 * Make the image resource object if needed
-	 *
-	 * @throws \Exception
-	 */
-	protected function ensureResource()
-	{
-		$this->getResourcePath();
-
-		$this->supportedFormatCheck();
-	}
-
-	/**
-	 * Check if given image format is supported
-	 *
-	 * @throws ImageException
-	 */
-	protected function supportedFormatCheck()
-	{
-		switch ($this->image()->imageType)
-		{
-			case IMAGETYPE_WEBP:
-				if (! in_array('WEBP', \Imagick::queryFormats()))
-				{
-					throw ImageException::forInvalidImageCreate(lang('images.webpNotSupported'));
-				}
-				break;
-		}
 	}
 
 	//--------------------------------------------------------------------
@@ -504,60 +446,21 @@ class ImageMagickHandler extends BaseHandler
 	/**
 	 * Return the width of an image.
 	 *
-	 * @return integer
+	 * @return type
 	 */
 	public function _getWidth()
 	{
-		return imagesx(imagecreatefromstring(file_get_contents($this->resource)));
+		return imagesx($this->resource);
 	}
 
 	/**
 	 * Return the height of an image.
 	 *
-	 * @return integer
+	 * @return type
 	 */
 	public function _getHeight()
 	{
-		return imagesy(imagecreatefromstring(file_get_contents($this->resource)));
+		return imagesy($this->resource);
 	}
 
-	//--------------------------------------------------------------------
-
-	/**
-	 * Reads the EXIF information from the image and modifies the orientation
-	 * so that displays correctly in the browser. This is especially an issue
-	 * with images taken by smartphones who always store the image up-right,
-	 * but set the orientation flag to display it correctly.
-	 *
-	 * @param boolean $silent If true, will ignore exceptions when PHP doesn't support EXIF.
-	 *
-	 * @return $this
-	 */
-	public function reorient(bool $silent = false)
-	{
-		$orientation = $this->getEXIF('Orientation', $silent);
-
-		switch ($orientation)
-		{
-			case 2:
-				return $this->flip('horizontal');
-			case 3:
-				return $this->rotate(180);
-			case 4:
-				return $this->rotate(180)
-								->flip('horizontal');
-			case 5:
-				return $this->rotate(90)
-								->flip('horizontal');
-			case 6:
-				return $this->rotate(90);
-			case 7:
-				return $this->rotate(270)
-								->flip('horizontal');
-			case 8:
-				return $this->rotate(270);
-			default:
-				return $this;
-		}
-	}
 }

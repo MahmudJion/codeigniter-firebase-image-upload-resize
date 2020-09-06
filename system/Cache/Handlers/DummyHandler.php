@@ -43,6 +43,7 @@ use CodeIgniter\Cache\CacheInterface;
 /**
  * Dummy cache handler
  */
+
 class DummyHandler implements CacheInterface
 {
 
@@ -91,7 +92,7 @@ class DummyHandler implements CacheInterface
 	 *
 	 * @param string $key Cache item name
 	 *
-	 * @return boolean
+	 * @return mixed
 	 */
 	public function delete(string $key)
 	{
@@ -133,7 +134,7 @@ class DummyHandler implements CacheInterface
 	/**
 	 * Will delete all items in the entire cache.
 	 *
-	 * @return boolean
+	 * @return mixed
 	 */
 	public function clean()
 	{

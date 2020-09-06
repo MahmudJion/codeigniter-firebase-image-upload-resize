@@ -58,13 +58,19 @@ class ResourceController extends Controller
 	 *
 	 * @var string Name of the model class managing this resource's data
 	 */
-	protected $modelName;
+	protected $modelName = null;
 
 	/**
 	 *
 	 * @var \CodeIgniter\Model the model holding this resource's data
 	 */
-	protected $model;
+	protected $model = null;
+
+	/**
+	 *
+	 * @var string the representation format to return resource data in (json/xml)
+	 */
+	protected $format = 'json';
 
 	//--------------------------------------------------------------------
 
@@ -176,7 +182,7 @@ class ResourceController extends Controller
 		{
 			if (class_exists($this->modelName))
 			{
-				$this->model = model($this->modelName);
+				$this->model = new $this->modelName;
 			}
 		}
 

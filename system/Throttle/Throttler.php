@@ -169,9 +169,9 @@ class Throttler implements ThrottlerInterface
 		$tokens += $rate * $elapsed;
 		$tokens  = $tokens > $capacity ? $capacity : $tokens;
 
-		// If $tokens >= 1, then we are safe to perform the action, but
+		// If $tokens > 0, then we are safe to perform the action, but
 		// we need to decrement the number of available tokens.
-		if ($tokens >= 1)
+		if ($tokens > 0)
 		{
 			$this->cache->save($tokenName, $tokens - $cost, $seconds);
 			$this->cache->save($tokenName . 'Time', time(), $seconds);
@@ -209,4 +209,5 @@ class Throttler implements ThrottlerInterface
 	{
 		return $this->testTime ?? time();
 	}
+
 }

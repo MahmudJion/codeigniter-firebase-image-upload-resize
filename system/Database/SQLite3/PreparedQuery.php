@@ -39,8 +39,8 @@
 
 namespace CodeIgniter\Database\SQLite3;
 
-use CodeIgniter\Database\BasePreparedQuery;
 use CodeIgniter\Database\PreparedQueryInterface;
+use CodeIgniter\Database\BasePreparedQuery;
 
 /**
  * Prepared query for SQLite3

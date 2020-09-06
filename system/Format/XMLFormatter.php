@@ -40,7 +40,6 @@
 namespace CodeIgniter\Format;
 
 use CodeIgniter\Format\Exceptions\FormatException;
-use Config\Format;
 
 /**
  * XML data formatter
@@ -57,8 +56,6 @@ class XMLFormatter implements FormatterInterface
 	 */
 	public function format($data)
 	{
-		$config  = new Format();
-		
 		// SimpleXML is installed but default
 		// but best to check, and then provide a fallback.
 		if (! extension_loaded('simplexml'))
@@ -69,8 +66,7 @@ class XMLFormatter implements FormatterInterface
 			// @codeCoverageIgnoreEnd
 		}
 
-		$options = $config->formatterOptions['application/xml'] ?? 0;
-		$output = new \SimpleXMLElement('<?xml version="1.0"?><response></response>', $options);
+		$output = new \SimpleXMLElement('<?xml version="1.0"?><response></response>');
 
 		$this->arrayToXML((array)$data, $output);
 
@@ -95,21 +91,19 @@ class XMLFormatter implements FormatterInterface
 		{
 			if (is_array($value))
 			{
-				if (is_numeric($key))
+				if (! is_numeric($key))
 				{
-					$key = "item{$key}";
+					$subnode = $output->addChild("$key");
+					$this->arrayToXML($value, $subnode);
 				}
-
-				$subnode = $output->addChild("$key");
-				$this->arrayToXML($value, $subnode);
+				else
+				{
+					$subnode = $output->addChild("item{$key}");
+					$this->arrayToXML($value, $subnode);
+				}
 			}
 			else
 			{
-				if (is_numeric($key))
-				{
-					$key = "item{$key}";
-				}
-
 				$output->addChild("$key", htmlspecialchars("$value"));
 			}
 		}

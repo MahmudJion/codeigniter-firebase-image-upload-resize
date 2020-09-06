@@ -45,7 +45,10 @@ namespace CodeIgniter\Debug;
  * Provides a simple way to measure the amount of time
  * that elapses between two points.
  *
- * @package CodeIgniter\Debug
+ * NOTE: All methods are static since the class is intended
+ * to measure throughout an entire application's life cycle.
+ *
+ * @package CodeIgniter\Benchmark
  */
 class Timer
 {

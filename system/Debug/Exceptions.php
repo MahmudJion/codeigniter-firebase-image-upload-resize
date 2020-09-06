@@ -104,7 +104,7 @@ class Exceptions
 	{
 		$this->ob_level = ob_get_level();
 
-		$this->viewPath = rtrim($config->errorViewPath, '\\/ ') . DIRECTORY_SEPARATOR;
+		$this->viewPath = rtrim($config->errorViewPath, '/ ') . '/';
 
 		$this->config = $config;
 
@@ -139,15 +139,12 @@ class Exceptions
 	 * and fire an event that allows custom actions to be taken at this point.
 	 *
 	 * @param \Throwable $exception
-	 *
-	 * @codeCoverageIgnore
 	 */
 	public function exceptionHandler(Throwable $exception)
 	{
-		[
-			$statusCode,
-			$exitCode,
-		] = $this->determineCodes($exception);
+		$codes      = $this->determineCodes($exception);
+		$statusCode = $codes[0];
+		$exitCode   = $codes[1];
 
 		// Log it
 		if ($this->config->log === true && ! in_array($statusCode, $this->config->ignoreCodes))
@@ -189,10 +186,11 @@ class Exceptions
 	 * @param string       $message
 	 * @param string|null  $file
 	 * @param integer|null $line
+	 * @param null         $context
 	 *
 	 * @throws \ErrorException
 	 */
-	public function errorHandler(int $severity, string $message, string $file = null, int $line = null)
+	public function errorHandler(int $severity, string $message, string $file = null, int $line = null, $context = null)
 	{
 		if (! (error_reporting() & $severity))
 		{
@@ -241,7 +239,7 @@ class Exceptions
 	{
 		// Production environments should have a custom exception file.
 		$view          = 'production.php';
-		$template_path = rtrim($template_path, '\\/ ') . DIRECTORY_SEPARATOR;
+		$template_path = rtrim($template_path, '/ ') . '/';
 
 		if (str_ireplace(['off', 'none', 'no', 'false', 'null'], '', ini_get('display_errors')))
 		{
@@ -255,7 +253,7 @@ class Exceptions
 		}
 
 		// Allow for custom views based upon the status code
-		if (is_file($template_path . 'error_' . $exception->getCode() . '.php'))
+		else if (is_file($template_path . 'error_' . $exception->getCode() . '.php'))
 		{
 			return 'error_' . $exception->getCode() . '.php';
 		}
@@ -273,26 +271,18 @@ class Exceptions
 	 */
 	protected function render(Throwable $exception, int $statusCode)
 	{
-		// Determine possible directories of error views
-		$path    = $this->viewPath;
-		$altPath = rtrim((new Paths())->viewDirectory, '\\/ ') . DIRECTORY_SEPARATOR . 'errors' . DIRECTORY_SEPARATOR;
-
-		$path    .= (is_cli() ? 'cli' : 'html') . DIRECTORY_SEPARATOR;
-		$altPath .= (is_cli() ? 'cli' : 'html') . DIRECTORY_SEPARATOR;
-
-		// Determine the views
-		$view    = $this->determineView($exception, $path);
-		$altView = $this->determineView($exception, $altPath);
-
-		// Check if the view exists
-		if (is_file($path . $view))
+		// Determine directory with views
+		$path = $this->viewPath;
+		if (empty($path))
 		{
-			$viewFile = $path . $view;
+			$paths = new Paths();
+			$path  = $paths->viewDirectory . '/errors/';
 		}
-		elseif (is_file($altPath . $altView))
-		{
-			$viewFile = $altPath . $altView;
-		}
+
+		$path = is_cli() ? $path . 'cli/' : $path . 'html/';
+
+		// Determine the vew
+		$view = $this->determineView($exception, $path);
 
 		// Prepare the vars
 		$vars = $this->collectVars($exception, $statusCode);
@@ -305,7 +295,7 @@ class Exceptions
 		}
 
 		ob_start();
-		include $viewFile;
+		include($path . $view);
 		$buffer = ob_get_contents();
 		ob_end_clean();
 		echo $buffer;
@@ -381,20 +371,17 @@ class Exceptions
 	 */
 	public static function cleanPath(string $file): string
 	{
-		switch (true)
+		if (strpos($file, APPPATH) === 0)
 		{
-			case strpos($file, APPPATH) === 0:
-				$file = 'APPPATH' . DIRECTORY_SEPARATOR . substr($file, strlen(APPPATH));
-				break;
-			case strpos($file, SYSTEMPATH) === 0:
-				$file = 'SYSTEMPATH' . DIRECTORY_SEPARATOR . substr($file, strlen(SYSTEMPATH));
-				break;
-			case strpos($file, FCPATH) === 0:
-				$file = 'FCPATH' . DIRECTORY_SEPARATOR . substr($file, strlen(FCPATH));
-				break;
-			case defined('VENDORPATH') && strpos($file, VENDORPATH) === 0:
-				$file = 'VENDORPATH' . DIRECTORY_SEPARATOR . substr($file, strlen(VENDORPATH));
-				break;
+			$file = 'APPPATH/' . substr($file, strlen(APPPATH));
+		}
+		elseif (strpos($file, SYSTEMPATH) === 0)
+		{
+			$file = 'SYSTEMPATH/' . substr($file, strlen(SYSTEMPATH));
+		}
+		elseif (strpos($file, FCPATH) === 0)
+		{
+			$file = 'FCPATH/' . substr($file, strlen(FCPATH));
 		}
 
 		return $file;

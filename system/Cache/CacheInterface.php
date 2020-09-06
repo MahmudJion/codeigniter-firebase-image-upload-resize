@@ -42,6 +42,7 @@ namespace CodeIgniter\Cache;
 /**
  * Cache interface
  */
+
 interface CacheInterface
 {
 

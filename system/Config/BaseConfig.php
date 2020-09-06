@@ -92,12 +92,6 @@ class BaseConfig
 		foreach ($properties as $property)
 		{
 			$this->initEnvValue($this->$property, $property, $prefix, $shortPrefix);
-
-			// Handle hex2bin prefix
-                      if ($shortPrefix === 'encryption' && $property === 'key' && strpos($this->$property, 'hex2bin:') === 0)
-			{
-				$this->$property = hex2bin(substr($this->$property, 8));
-			}
 		}
 
 		if (defined('ENVIRONMENT') && ENVIRONMENT !== 'testing')
@@ -170,12 +164,16 @@ class BaseConfig
 		{
 			case array_key_exists("{$shortPrefix}.{$property}", $_ENV):
 				return $_ENV["{$shortPrefix}.{$property}"];
+				break;
 			case array_key_exists("{$shortPrefix}.{$property}", $_SERVER):
 				return $_SERVER["{$shortPrefix}.{$property}"];
+				break;
 			case array_key_exists("{$prefix}.{$property}", $_ENV):
 				return $_ENV["{$prefix}.{$property}"];
+				break;
 			case array_key_exists("{$prefix}.{$property}", $_SERVER):
 				return $_SERVER["{$prefix}.{$property}"];
+				break;
 			default:
 				$value = getenv($property);
 				return $value === false ? null : $value;

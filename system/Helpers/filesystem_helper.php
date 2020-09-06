@@ -94,7 +94,7 @@ if (! function_exists('directory_map'))
 			closedir($fp);
 			return $fileData;
 		}
-		catch (\Throwable $e)
+		catch (\Exception $fe)
 		{
 			return [];
 		}
@@ -138,7 +138,7 @@ if (! function_exists('write_file'))
 
 			return is_int($result);
 		}
-		catch (\Throwable $e)
+		catch (\Exception $fe)
 		{
 			return false;
 		}
@@ -160,48 +160,39 @@ if (! function_exists('delete_files'))
 	 * @param string  $path    File path
 	 * @param boolean $del_dir Whether to delete any directories found in the path
 	 * @param boolean $htdocs  Whether to skip deleting .htaccess and index page files
-	 * @param boolean $hidden  Whether to include hidden files (files beginning with a period)
+	 * @param integer $_level  Current directory depth level (default: 0; internal use only)
 	 *
 	 * @return boolean
 	 */
-	function delete_files(string $path, bool $del_dir = false, bool $htdocs = false, bool $hidden = false): bool
+	function delete_files(string $path, bool $del_dir = false, bool $htdocs = false, int $_level = 0): bool
 	{
-		$path = realpath($path) ?: $path;
-		$path = rtrim($path, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
+		// Trim the trailing slash
+		$path = rtrim($path, '/\\');
 
 		try
 		{
-			foreach (new RecursiveIteratorIterator(
-				new RecursiveDirectoryIterator($path, RecursiveDirectoryIterator::SKIP_DOTS),
-				RecursiveIteratorIterator::CHILD_FIRST
-			) as $object)
+			$current_dir = opendir($path);
+
+			while (false !== ($filename = @readdir($current_dir)))
 			{
-				$filename = $object->getFilename();
-
-				if (! $hidden && $filename[0] === '.')
+				if ($filename !== '.' && $filename !== '..')
 				{
-					continue;
-				}
-				elseif (! $htdocs || ! preg_match('/^(\.htaccess|index\.(html|htm|php)|web\.config)$/i', $filename))
-				{
-					$isDir = $object->isDir();
-
-					if ($isDir && $del_dir)
+					if (is_dir($path . DIRECTORY_SEPARATOR . $filename) && $filename[0] !== '.')
 					{
-						@rmdir($object->getPathname());
-						continue;
+						delete_files($path . DIRECTORY_SEPARATOR . $filename, $del_dir, $htdocs, $_level + 1);
 					}
-
-					if (! $isDir)
+					elseif ($htdocs !== true || ! preg_match('/^(\.htaccess|index\.(html|htm|php)|web\.config)$/i', $filename))
 					{
-						@unlink($object->getPathname());
+						@unlink($path . DIRECTORY_SEPARATOR . $filename);
 					}
 				}
 			}
 
-			return true;
+			closedir($current_dir);
+
+			return ($del_dir === true && $_level > 0) ? @rmdir($path) : true;
 		}
-		catch (\Throwable $e)
+		catch (\Exception $fe)
 		{
 			return false;
 		}
@@ -218,54 +209,45 @@ if (! function_exists('get_filenames'))
 	 * Reads the specified directory and builds an array containing the filenames.
 	 * Any sub-folders contained within the specified path are read as well.
 	 *
-	 * @param string       $source_dir   Path to source
-	 * @param boolean|null $include_path Whether to include the path as part of the filename; false for no path, null for a relative path, true for full path
-	 * @param boolean      $hidden       Whether to include hidden files (files beginning with a period)
+	 * @param string  $source_dir   Path to source
+	 * @param boolean $include_path Whether to include the path as part of the filename
+	 * @param boolean $recursion    Internal variable to determine recursion status - do not use in calls
 	 *
 	 * @return array
 	 */
-	function get_filenames(string $source_dir, ?bool $include_path = false, bool $hidden = false): array
+	function get_filenames(string $source_dir, bool $include_path = false, bool $recursion = false): array
 	{
-		$files = [];
-
-		$source_dir = realpath($source_dir) ?: $source_dir;
-		$source_dir = rtrim($source_dir, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
+		static $fileData = [];
 
 		try
 		{
-			foreach (new RecursiveIteratorIterator(
-					new RecursiveDirectoryIterator($source_dir, RecursiveDirectoryIterator::SKIP_DOTS),
-					RecursiveIteratorIterator::SELF_FIRST
-				) as $name => $object)
+			$fp = opendir($source_dir);
+			// reset the array and make sure $source_dir has a trailing slash on the initial call
+			if ($recursion === false)
 			{
-				$basename = pathinfo($name, PATHINFO_BASENAME);
+				$fileData   = [];
+				$source_dir = rtrim(realpath($source_dir), DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
+			}
 
-				if (! $hidden && $basename[0] === '.')
+			while (false !== ($file = readdir($fp)))
+			{
+				if (is_dir($source_dir . $file) && $file[0] !== '.')
 				{
-					continue;
+					get_filenames($source_dir . $file . DIRECTORY_SEPARATOR, $include_path, true);
 				}
-				elseif ($include_path === false)
+				elseif ($file[0] !== '.')
 				{
-					$files[] = $basename;
-				}
-				elseif (is_null($include_path))
-				{
-					$files[] = str_replace($source_dir, '', $name);
-				}
-				else
-				{
-					$files[] = $name;
+					$fileData[] = ($include_path === true) ? $source_dir . $file : $file;
 				}
 			}
+
+			closedir($fp);
+			return $fileData;
 		}
-		catch (\Throwable $e)
+		catch (\Exception $fe)
 		{
 			return [];
 		}
-
-		sort($files);
-
-		return $files;
 	}
 }
 
@@ -320,7 +302,7 @@ if (! function_exists('get_dir_file_info'))
 				return $fileData;
 			}
 		}
-		catch (\Throwable $fe)
+		catch (\Exception $fe)
 		{
 			return [];
 		}

@@ -87,14 +87,14 @@ class Table
 	 *
 	 * @var string
 	 */
-	public $caption;
+	public $caption = null;
 
 	/**
 	 * Table layout template
 	 *
 	 * @var array
 	 */
-	public $template;
+	public $template = null;
 
 	/**
 	 * Newline setting
@@ -115,7 +115,7 @@ class Table
 	 *
 	 * @var function
 	 */
-	public $function;
+	public $function = null;
 
 	/**
 	 * Set the template from the table config file if it exists
@@ -158,9 +158,10 @@ class Table
 	 *
 	 * Can be passed as an array or discreet params
 	 *
+	 * @param  mixed
 	 * @return Table
 	 */
-	public function setHeading()
+	public function setHeading($args = [])
 	{
 		$this->heading = $this->_prepArgs(func_get_args());
 		return $this;
@@ -171,9 +172,10 @@ class Table
 	 *
 	 * Can be passed as an array or discreet params
 	 *
+	 * @param  mixed
 	 * @return Table
 	 */
-	public function setFooting()
+	public function setFooting($args = [])
 	{
 		$this->footing = $this->_prepArgs(func_get_args());
 		return $this;
@@ -250,9 +252,10 @@ class Table
 	 *
 	 * Can be passed as an array or discreet params
 	 *
+	 * @param  mixed
 	 * @return Table
 	 */
-	public function addRow()
+	public function addRow($args = [])
 	{
 		$this->rows[] = $this->_prepArgs(func_get_args());
 		return $this;
