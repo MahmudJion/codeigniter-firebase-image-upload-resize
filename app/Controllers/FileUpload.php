@@ -20,7 +20,7 @@ class FileUpload extends Controller
         $input = $this->validate([
             'file' => [
                 'uploaded[file]',
-                'mime_in[file,image/jpg,image/jpeg,image/png]',
+                'mime_in[file,image/jpg,image/jpeg,image/png,image/webp]',
                 'max_size[file,1024]',
             ]
         ]);
