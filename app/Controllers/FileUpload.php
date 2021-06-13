@@ -1,6 +1,5 @@
 <?php
 namespace App\Controllers;
-// use App\Models\FormModel;
 use CodeIgniter\Controller;
 
 class FileUpload extends Controller
