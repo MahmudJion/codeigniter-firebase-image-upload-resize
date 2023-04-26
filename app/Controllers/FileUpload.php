@@ -1,16 +1,18 @@
 <?php
 namespace App\Controllers;
+
 use CodeIgniter\Controller;
 
 class FileUpload extends Controller
 {
 
     public function index()
-	{
+    {
         return view('home');
     }
 
-    function upload() {
+    public function upload()
+    {
         helper(['form', 'url']);
 
         $database = \Config\Database::connect();
@@ -31,13 +33,12 @@ class FileUpload extends Controller
             $img->move(WRITEPATH . 'uploads');
 
             $data = [
-               'name' =>  $img->getName(),
-               'type'  => $img->getClientMimeType()
+                'name' =>  $img->getName(),
+                'type'  => $img->getClientMimeType()
             ];
 
             $save = $db->insert($data);
-            print_r('File has successfully uploaded');
+            print_r('File has been successfully uploaded');
         }
     }
-
 }
