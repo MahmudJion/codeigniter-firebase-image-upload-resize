@@ -7,7 +7,6 @@ use Kreait\Firebase\ServiceAccount;
 
 class FileUpload extends Controller
 {
-
     public function index()
     {
         return view('home');
@@ -26,8 +25,10 @@ class FileUpload extends Controller
         ]);
 
         if (!$input) {
-            print_r('Choose a valid file');
-        } else {
+            return $this->response->setJSON(['error' => 'Choose a valid file.']);
+        }
+
+        try {
             $img = $this->request->getFile('file');
 
             // Initialize Firebase Storage
@@ -39,35 +40,36 @@ class FileUpload extends Controller
 
             // Upload the original image to Firebase Storage
             $originalImagePath = WRITEPATH . 'uploads/' . $img->getName();
+            $img->move(WRITEPATH . 'uploads');
             $imageData = file_get_contents($originalImagePath);
             $storage->getBucket()->upload($imageData, [
                 'name' => 'images/' . $img->getName()
             ]);
 
             // Resize the image using CodeIgniter's Image Manipulation library
-            $config = [
-                'image_library' => 'gd2',
-                'source_image' => $originalImagePath,
-                'create_thumb' => false,
-                'maintain_ratio' => true,
-                'width' => 800,
-                'height' => 800
-            ];
-            $this->load->library('image_lib', $config);
-            $this->image_lib->resize();
+            $image = \Config\Services::image()
+                ->withFile($originalImagePath)
+                ->resize(800, 800, true, 'auto')
+                ->save(WRITEPATH . 'uploads/thumb_' . $img->getName());
 
             // Upload the resized image to Firebase Storage
-            $resizedImagePath = WRITEPATH . 'uploads/' . 'thumb_' . $img->getName();
+            $resizedImagePath = WRITEPATH . 'uploads/thumb_' . $img->getName();
             $resizedImageData = file_get_contents($resizedImagePath);
             $storage->getBucket()->upload($resizedImageData, [
                 'name' => 'images/thumb_' . $img->getName()
             ]);
 
             // Delete the original and resized images from local server
-            unlink($originalImagePath);
-            unlink($resizedImagePath);
+            if (file_exists($originalImagePath)) {
+                unlink($originalImagePath);
+            }
+            if (file_exists($resizedImagePath)) {
+                unlink($resizedImagePath);
+            }
 
-            print_r('File has been successfully uploaded and resized');
+            return $this->response->setJSON(['success' => 'File has been successfully uploaded and resized.']);
+        } catch (\Exception $e) {
+            return $this->response->setJSON(['error' => 'An error occurred: ' . $e->getMessage()]);
         }
     }
 }
